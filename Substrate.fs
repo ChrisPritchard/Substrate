@@ -32,8 +32,8 @@ let makeCrack grid =
     { x = X; y = Y; t = T % 360. }
 
 let moveCrack grid maxX maxY crack = 
-    let X = crack.x + 0.42*cos(t*PI/180.)
-    let Y = crack.y + 0.42*sin(t*PI/180.)
+    let X = crack.x + 0.42*cos(crack.t*PI/180.)
+    let Y = crack.y + 0.42*sin(crack.t*PI/180.)
 
     let x, y = fuzz X, fuzz Y
     
