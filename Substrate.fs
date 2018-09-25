@@ -1,6 +1,7 @@
 module Substrate
 
 type World = {
+    size: int * int
     grid: Map<int * int, int>
     cracks: Crack list
 } and Crack = {
@@ -37,13 +38,13 @@ let moveCrack grid maxX maxY crack =
 
     let x, y = fuzz X, fuzz Y
     
-    if x < 0 || y < 0 || x >= maxX || y >= maxY then grid, None
-    else if grid |> Map.containsKey (x, y) |> not then Map.add (x, y) (int crack.t) grid, Some { crack with x = X; y = Y }
+    if x < 0 || y < 0 || x >= maxX || y >= maxY then grid, makeCrack grid
+    else if grid |> Map.containsKey (x, y) |> not then Map.add (x, y) (int crack.t) grid, { crack with x = X; y = Y }
     else
         let current = float grid.[x, y]
-        if abs current - crack.t < 5. then Map.add (x, y) (int crack.t) grid, Some { crack with x = X; y = Y }
-        else if abs current - crack.t > 2. then grid, None
-        else grid, None
+        if abs current - crack.t < 5. then Map.add (x, y) (int crack.t) grid, { crack with x = X; y = Y }
+        //else if abs current - crack.t > 2. then grid, makeCrack grid
+        else grid, makeCrack grid
 
 let initWorld width height = 
     let initialGrid = 
@@ -55,6 +56,18 @@ let initWorld width height =
         [1..cracks] 
         |> List.map (fun _ -> makeCrack initialGrid)
     {
+        size = width, height
         grid = initialGrid
         cracks = initialCracks
     }
+
+let advanceWorld world =
+    let maxX, maxY = world.size
+    let nextGrid, nextCracks = 
+        world.cracks 
+        |> Seq.fold (fun (grid, cracks) crack -> 
+            let nextGrid, newCrack = moveCrack grid maxX maxY crack
+            nextGrid, newCrack::cracks) (world.grid, [])
+    { world with 
+        grid = nextGrid
+        cracks = nextCracks }
