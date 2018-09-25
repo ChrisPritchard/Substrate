@@ -10,18 +10,17 @@ type World = {
     t: float
 }
 
-let private random = new System.Random (1)
+let private random = new System.Random ()
 
-let crackJiggle () = (random.NextDouble() * 4.1) - 2.1
-let PI = System.Math.PI
-let PID = PI/180.
+let private crackJiggle () = (random.NextDouble() * 4.1) - 2.1
+let private PID = System.Math.PI/180.
+let private maxCracks = 200
+let private crackRate = 3
 
-let maxCracks = 200
+let private z = 0.33
+let private fuzz n = n + (random.NextDouble() * (z*2.)) - z |> int
 
-let z = 0.33
-let fuzz n = n + (random.NextDouble() * (z*2.)) - z |> int
-
-let makeCrack grid =
+let private makeCrack grid =
     let index = random.Next <| Map.count grid
     let (x, y), t = grid |> Map.toSeq |> Seq.item index
 
@@ -34,13 +33,13 @@ let makeCrack grid =
 
     { x = X; y = Y; t = T % 360. }
 
-let makeCracks count current grid = 
+let private makeCracks count current grid = 
     match List.length current with
     | n when n >= maxCracks -> []
     | _ -> 
         [1..count] |> List.map (fun _ -> makeCrack grid)
 
-let moveCrack grid maxX maxY crack = 
+let private moveCrack grid maxX maxY crack = 
     let X = crack.x + 0.42 * cos (crack.t*PID)
     let Y = crack.y + 0.42 * sin (crack.t*PID)
 
@@ -54,30 +53,29 @@ let moveCrack grid maxX maxY crack =
         let current = float grid.[x, y]
         if abs (current - crack.t) < 5. then 
             Map.add (x, y) (int crack.t) grid, Some { crack with x = X; y = Y }
-        //else if abs (current - crack.t) > 2. then grid, makeCrack grid
         else 
             grid, None
 
-let initWorld width height cracks = 
+let initWorld width height = 
     let initialGrid = 
-        [1..pown cracks 3] 
+        [1..pown crackRate 3] 
         |> List.map (fun _ -> 
             (random.Next width, random.Next height), random.Next 360) 
         |> Map.ofList
     {
         size = width, height
         grid = initialGrid
-        cracks = makeCracks cracks [] initialGrid
+        cracks = makeCracks crackRate [] initialGrid
     }
 
-let advanceWorld crackIncreaseRate world =
+let advanceWorld world =
     let maxX, maxY = world.size
     let nextGrid, nextCracks = 
         world.cracks 
         |> Seq.fold (fun (grid, cracks) crack -> 
             let nextGrid, newCrack = moveCrack grid maxX maxY crack
             match newCrack with
-            | None -> nextGrid, (makeCracks crackIncreaseRate world.cracks grid) @ cracks
+            | None -> nextGrid, (makeCracks crackRate world.cracks grid) @ cracks
             | Some c -> nextGrid, c::cracks) (world.grid, [])
     { world with 
         grid = nextGrid

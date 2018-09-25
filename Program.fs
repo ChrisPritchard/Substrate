@@ -1,11 +1,11 @@
 ﻿
 open Substrate
 open System.Drawing
+open System.Drawing.Imaging
 
 let width, height  = 900, 900
 let backColour = Color.White
 let foreColour = Color.Black
-
 let iterations = 1000
 
 [<EntryPoint>]
@@ -17,10 +17,10 @@ let main _ =
 
     let stopwatch = System.Diagnostics.Stopwatch.StartNew ()
     
-    let world = initWorld width height 3
+    let world = initWorld width height
     let finalWorld = 
         [1..iterations] |> Seq.fold (fun world _ ->
-            advanceWorld 3 world) world
+            advanceWorld world) world
 
     stopwatch.Stop ()
     printfn "time taken was %i ms" stopwatch.ElapsedMilliseconds
@@ -29,5 +29,5 @@ let main _ =
     finalWorld.grid |> Map.iter (fun (x, y) _ -> 
         graphics.FillRectangle(brush, x, y, 1, 1))
 
-    bitmap.Save "./bin/result.bmp"
+    bitmap.Save ("./result.png", ImageFormat.Png)
     0
