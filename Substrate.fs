@@ -14,8 +14,8 @@ let private random = new System.Random ()
 
 let private crackJiggle () = (random.NextDouble() * 4.1) - 2.1
 let private PID = System.Math.PI/180.
-let private maxCracks = 200
-let private crackRate = 3
+let private maxCracks = 15
+let private crackRate = 2
 
 let private z = 0.33
 let private fuzz n = n + (random.NextDouble() * (z*2.)) - z |> int

@@ -1,33 +1,31 @@
 ﻿
 open Substrate
-open System.Drawing
-open System.Drawing.Imaging
+open GameCore.GameModel
+open GameCore.GameLoop
+open Microsoft.Xna.Framework
+open Microsoft.Xna.Framework.Input
 
-let width, height  = 900, 900
+let width, height  = 450, 450
 let backColour = Color.White
 let foreColour = Color.Black
-let iterations = 1000
 
 [<EntryPoint>]
 let main _ =
-    let bitmap = new Bitmap (width, height)
-    use graphics = Graphics.FromImage bitmap
-    let brush = new SolidBrush (backColour)
-    graphics.FillRectangle (brush, 0, 0, width, height)
 
-    let stopwatch = System.Diagnostics.Stopwatch.StartNew ()
-    
-    let world = initWorld width height
-    let finalWorld = 
-        [1..iterations] |> Seq.fold (fun world _ ->
-            advanceWorld world) world
+    let resolution = Windowed (width, height)
+    let updateModel runState world =
+        match world with
+        | None -> Some <| initWorld width height
+        | _ when wasJustPressed Keys.Escape runState -> None
+        | Some world -> Some <| advanceWorld world
 
-    stopwatch.Stop ()
-    printfn "time taken was %i ms" stopwatch.ElapsedMilliseconds
-    
-    let brush = new SolidBrush (foreColour)
-    finalWorld.grid |> Map.iter (fun (x, y) _ -> 
-        graphics.FillRectangle(brush, x, y, 1, 1))
+    let getView _ world =
+        [
+            yield Colour ((0, 0, width, height), backColour)
+            yield! world.grid |> Map.toList |> List.map (fun ((x, y), _) -> 
+                Colour ((x, y, 1, 1), foreColour))
+        ]
 
-    bitmap.Save ("./result.png", ImageFormat.Png)
+    use game = new GameLoop<World>(resolution, [], updateModel, getView, None)
+    game.Run()
     0
