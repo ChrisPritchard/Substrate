@@ -1,7 +1,7 @@
 ﻿
 open Substrate
 open GameCore.GameModel
-open GameCore.GameLoop
+open GameCore.GameRunner
 open Microsoft.Xna.Framework
 open Microsoft.Xna.Framework.Input
 
@@ -12,7 +12,13 @@ let foreColour = Color.Black
 [<EntryPoint>]
 let main _ =
 
-    let resolution = Windowed (width, height)
+    let config = {
+        clearColour = Some Color.White
+        resolution = Windowed (width, height)
+        assetsToLoad = []
+        fpsFont = None
+    }
+
     let updateModel runState world =
         match world with
         | None -> Some <| initWorld width height
@@ -21,11 +27,9 @@ let main _ =
 
     let getView _ world =
         [
-            yield Colour ((0, 0, width, height), backColour)
             yield! world.grid |> Map.toList |> List.map (fun ((x, y), _) -> 
                 Colour ((x, y, 1, 1), foreColour))
         ]
 
-    use game = new GameLoop<World>(resolution, [], updateModel, getView, None)
-    game.Run()
+    runGame config updateModel getView
     0
