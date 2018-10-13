@@ -5,7 +5,7 @@ open GameCore.GameRunner
 open Microsoft.Xna.Framework
 open Microsoft.Xna.Framework.Input
 
-let width, height  = 450, 450
+let width, height  = 900, 900
 let backColour = Color.White
 let foreColour = Color.Black
 
@@ -13,7 +13,7 @@ let foreColour = Color.Black
 let main _ =
 
     let config = {
-        clearColour = Some Color.White
+        clearColour = Some backColour
         resolution = Windowed (width, height)
         assetsToLoad = []
         fpsFont = None
@@ -23,7 +23,8 @@ let main _ =
         match world with
         | None -> Some <| initWorld width height
         | _ when wasJustPressed Keys.Escape runState -> None
-        | Some world -> Some <| advanceWorld world
+        | Some world -> 
+            Some <| advanceWorld world
 
     let getView _ world =
         [
